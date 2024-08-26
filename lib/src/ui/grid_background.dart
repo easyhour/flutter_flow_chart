@@ -1,3 +1,5 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 
 /// Defines grid parameters.
@@ -8,6 +10,7 @@ class GridBackgroundParams extends ChangeNotifier {
     this.gridThickness = 0.7,
     this.secondarySquareStep = 5,
     this.backgroundColor = Colors.white,
+    this.backgroundImage,
     this.gridColor = Colors.black12,
     void Function(double scale)? onScaleUpdate,
   }) : rawGridSquareSize = gridSquare {
@@ -46,6 +49,9 @@ class GridBackgroundParams extends ChangeNotifier {
 
   /// Grid background color.
   final Color backgroundColor;
+
+  /// Grid background image.
+  final ui.Image? backgroundImage;
 
   /// Grid lines color.
   final Color gridColor;
@@ -142,6 +148,7 @@ class _GridBackgroundPainter extends CustomPainter {
     required this.dx,
     required this.dy,
   });
+
   final GridBackgroundParams params;
   final double dx;
   final double dy;
@@ -190,6 +197,10 @@ class _GridBackgroundPainter extends CustomPainter {
           ? params.gridThickness * 2.0
           : params.gridThickness;
       canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
+    }
+
+    if (params.backgroundImage != null) {
+      canvas.drawImage(params.backgroundImage!, Offset.zero, paint);
     }
   }
 

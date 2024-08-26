@@ -1,10 +1,13 @@
 // ignore_for_file: public_member_api_docs
 
+import 'dart:ui' as ui;
+
 import 'package:example/element_settings_menu.dart';
 import 'package:example/text_menu.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_flow_chart/flutter_flow_chart.dart';
-import 'package:path_provider/path_provider.dart' as path;
+import 'package:image/image.dart' as image;
 import 'package:star_menu/star_menu.dart';
 
 void main() {
@@ -19,11 +22,9 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Flutter Flow Chart Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: const MyHomePage(title: 'Flutter Flow Chart Demo'),
+      title: 'EasyHour Editor NG',
+      theme: ThemeData(primarySwatch: Colors.blue),
+      home: const MyHomePage(title: 'EasyHour Editor NG'),
     );
   }
 }
@@ -38,50 +39,74 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
+Future<ui.Image> getUiImage(
+    String imageAssetPath, int height, int width) async {
+  final ByteData assetImageByteData = await rootBundle.load(imageAssetPath);
+  image.Image baseSizeImage =
+      image.decodeImage(assetImageByteData.buffer.asUint8List())!;
+  image.Image resizeImage =
+      image.copyResize(baseSizeImage, height: height, width: width);
+  ui.Codec codec = await ui.instantiateImageCodec(image.encodePng(resizeImage));
+  ui.FrameInfo frameInfo = await codec.getNextFrame();
+  return frameInfo.image;
+}
+
 class _MyHomePageState extends State<MyHomePage> {
-  Dashboard dashboard = Dashboard();
+  Dashboard? dashboard;
+
+  @override
+  void initState() {
+    super.initState();
+
+    getUiImage('test.png', 2000, 1629).then((image) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        setState(() => dashboard = Dashboard(backgroundImage: image));
+      });
+    });
+  }
 
   /// Notifier for the tension slider
   final segmentedTension = ValueNotifier<double>(1);
 
   @override
   Widget build(BuildContext context) {
+    if (dashboard == null) return Container();
+
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-        actions: [
-          IconButton(
-            onPressed: () {
-              dashboard.setZoomFactor(1.5 * dashboard.zoomFactor);
-            },
-            icon: const Icon(Icons.zoom_in),
-          ),
-          IconButton(
-            onPressed: () {
-              dashboard.setZoomFactor(dashboard.zoomFactor / 1.5);
-            },
-            icon: const Icon(Icons.zoom_out),
-          ),
-        ],
-      ),
+      appBar: AppBar(title: Text(widget.title), actions: [
+        IconButton(
+          onPressed: () =>
+              dashboard!.setZoomFactor(1.5 * dashboard!.zoomFactor),
+          icon: const Icon(Icons.zoom_in),
+        ),
+        IconButton(
+          onPressed: () =>
+              dashboard!.setZoomFactor(dashboard!.zoomFactor / 1.5),
+          icon: const Icon(Icons.zoom_out),
+        ),
+        IconButton(
+          onPressed: _deleteAllElements,
+          icon: const Icon(Icons.delete_forever_outlined),
+        ),
+      ]),
       backgroundColor: Colors.black12,
       body: Container(
         constraints: const BoxConstraints.expand(),
         child: FlowChart(
-          dashboard: dashboard,
+          dashboard: dashboard!,
           onNewConnection: (p1, p2) {
             debugPrint('new connection');
           },
           onDashboardTapped: (context, position) {
             debugPrint('Dashboard tapped $position');
-            _displayDashboardMenu(context, position);
+            _addElement(position);
           },
           onScaleUpdate: (newScale) {
             debugPrint('Scale updated. new scale: $newScale');
           },
           onDashboardSecondaryTapped: (context, position) {
             debugPrint('Dashboard right clicked $position');
-            _displayDashboardMenu(context, position);
+            _addElement(position);
           },
           onDashboardLongTapped: (context, position) {
             debugPrint('Dashboard long tapped $position');
@@ -117,12 +142,12 @@ class _MyHomePageState extends State<MyHomePage> {
                 'handler $handler" of element $element');
           },
           onPivotSecondaryPressed: (context, pivot) {
-            dashboard.removeDissection(pivot);
+            dashboard!.removeDissection(pivot);
           },
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: dashboard.recenter,
+        onPressed: dashboard!.recenter,
         child: const Icon(Icons.center_focus_strong),
       ),
     );
@@ -153,8 +178,8 @@ class _MyHomePageState extends State<MyHomePage> {
           useTouchAsCenter: true,
           centerOffset: position -
               Offset(
-                dashboard.dashboardSize.width / 2,
-                dashboard.dashboardSize.height / 2,
+                dashboard!.dashboardSize.width / 2,
+                dashboard!.dashboardSize.height / 2,
               ),
         ),
         onItemTapped: (index, controller) {
@@ -166,12 +191,12 @@ class _MyHomePageState extends State<MyHomePage> {
           ActionChip(
             label: const Icon(Icons.delete),
             onPressed: () =>
-                dashboard.removeElementConnection(element, handler),
+                dashboard!.removeElementConnection(element, handler),
           ),
           ActionChip(
             label: const Icon(Icons.control_point),
             onPressed: () {
-              dashboard.dissectElementConnection(element, handler);
+              dashboard!.dissectElementConnection(element, handler);
             },
           ),
           ValueListenableBuilder<double>(
@@ -182,7 +207,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   ActionChip(
                     label: const Text('segmented'),
                     onPressed: () {
-                      dashboard.setArrowStyleByHandler(
+                      dashboard!.setArrowStyleByHandler(
                         element,
                         handler,
                         ArrowStyle.segmented,
@@ -197,7 +222,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       max: 3,
                       onChanged: (v) {
                         segmentedTension.value = v;
-                        dashboard.setArrowStyleByHandler(
+                        dashboard!.setArrowStyleByHandler(
                           element,
                           handler,
                           ArrowStyle.segmented,
@@ -213,7 +238,7 @@ class _MyHomePageState extends State<MyHomePage> {
           ActionChip(
             label: const Text('curved'),
             onPressed: () {
-              dashboard.setArrowStyleByHandler(
+              dashboard!.setArrowStyleByHandler(
                 element,
                 handler,
                 ArrowStyle.curve,
@@ -223,7 +248,7 @@ class _MyHomePageState extends State<MyHomePage> {
           ActionChip(
             label: const Text('rectangular'),
             onPressed: () {
-              dashboard.setArrowStyleByHandler(
+              dashboard!.setArrowStyleByHandler(
                 element,
                 handler,
                 ArrowStyle.rectangular,
@@ -275,19 +300,13 @@ class _MyHomePageState extends State<MyHomePage> {
             style: const TextStyle(fontWeight: FontWeight.w900),
           ),
           InkWell(
-            onTap: () => dashboard.removeElement(element),
+            onTap: () => dashboard!.removeElement(element),
             child: const Text('Delete'),
           ),
           TextMenu(element: element),
           InkWell(
             onTap: () {
-              dashboard.removeElementConnections(element);
-            },
-            child: const Text('Remove all connections'),
-          ),
-          InkWell(
-            onTap: () {
-              dashboard.setElementResizable(element, true);
+              dashboard!.setElementResizable(element, true);
             },
             child: const Text('Resize'),
           ),
@@ -300,169 +319,27 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  /// Display a linear menu for the dashboard
-  /// with menu entries built with [menuEntries]
-  void _displayDashboardMenu(BuildContext context, Offset position) {
-    StarMenuOverlay.displayStarMenu(
-      context,
-      StarMenu(
-        params: StarMenuParameters(
-          shape: MenuShape.linear,
-          openDurationMs: 60,
-          linearShapeParams: const LinearShapeParams(
-            angle: 270,
-            alignment: LinearAlignment.left,
-            space: 10,
-          ),
-          // calculate the offset from the dashboard center
-          centerOffset: position -
-              Offset(
-                dashboard.dashboardSize.width / 2,
-                dashboard.dashboardSize.height / 2,
-              ),
-        ),
-        onItemTapped: (index, controller) => controller.closeMenu!(),
-        parentContext: context,
-        items: [
-          ActionChip(
-            label: const Text('Add diamond'),
-            onPressed: () {
-              dashboard.addElement(
-                FlowElement(
-                  position: position,
-                  size: const Size(80, 80),
-                  text: '${dashboard.elements.length}',
-                  handlerSize: 25,
-                  kind: ElementKind.diamond,
-                  handlers: [
-                    Handler.bottomCenter,
-                    Handler.topCenter,
-                    Handler.leftCenter,
-                    Handler.rightCenter,
-                  ],
-                ),
-              );
-            },
-          ),
-          ActionChip(
-            label: const Text('Add rect'),
-            onPressed: () {
-              dashboard.addElement(
-                FlowElement(
-                  position: position,
-                  size: const Size(100, 50),
-                  text: '${dashboard.elements.length}',
-                  handlerSize: 25,
-                  kind: ElementKind.rectangle,
-                  handlers: [
-                    Handler.bottomCenter,
-                    Handler.topCenter,
-                    Handler.leftCenter,
-                    Handler.rightCenter,
-                  ],
-                ),
-              );
-            },
-          ),
-          ActionChip(
-            label: const Text('Add oval'),
-            onPressed: () {
-              dashboard.addElement(
-                FlowElement(
-                  position: position,
-                  size: const Size(100, 50),
-                  text: '${dashboard.elements.length}',
-                  handlerSize: 25,
-                  kind: ElementKind.oval,
-                  handlers: [
-                    Handler.bottomCenter,
-                    Handler.topCenter,
-                    Handler.leftCenter,
-                    Handler.rightCenter,
-                  ],
-                ),
-              );
-            },
-          ),
-          ActionChip(
-            label: const Text('Add parallelogram'),
-            onPressed: () {
-              dashboard.addElement(
-                FlowElement(
-                  position: position,
-                  size: const Size(100, 50),
-                  text: '${dashboard.elements.length}',
-                  handlerSize: 25,
-                  kind: ElementKind.parallelogram,
-                  handlers: [
-                    Handler.bottomCenter,
-                    Handler.topCenter,
-                  ],
-                ),
-              );
-            },
-          ),
-          ActionChip(
-            label: const Text('Add hexagon'),
-            onPressed: () {
-              dashboard.addElement(
-                FlowElement(
-                  position: position,
-                  size: const Size(150, 100),
-                  text: '${dashboard.elements.length}',
-                  handlerSize: 25,
-                  kind: ElementKind.hexagon,
-                  handlers: [
-                    Handler.bottomCenter,
-                    Handler.leftCenter,
-                    Handler.rightCenter,
-                    Handler.topCenter,
-                  ],
-                ),
-              );
-            },
-          ),
-          ActionChip(
-            label: const Text('Add storage'),
-            onPressed: () {
-              dashboard.addElement(
-                FlowElement(
-                  position: position,
-                  size: const Size(100, 150),
-                  text: '${dashboard.elements.length}',
-                  handlerSize: 25,
-                  kind: ElementKind.storage,
-                  handlers: [
-                    Handler.bottomCenter,
-                    Handler.leftCenter,
-                    Handler.rightCenter,
-                  ],
-                ),
-              );
-            },
-          ),
-          ActionChip(
-            label: const Text('Remove all'),
-            onPressed: () {
-              dashboard.removeAllElements();
-            },
-          ),
-          ActionChip(
-            label: const Text('SAVE dashboard'),
-            onPressed: () async {
-              final appDocDir = await path.getApplicationDocumentsDirectory();
-              dashboard.saveDashboard('${appDocDir.path}/FLOWCHART.json');
-            },
-          ),
-          ActionChip(
-            label: const Text('LOAD dashboard'),
-            onPressed: () async {
-              final appDocDir = await path.getApplicationDocumentsDirectory();
-              dashboard.loadDashboard('${appDocDir.path}/FLOWCHART.json');
-            },
-          ),
-        ],
-      ),
+  _deleteElement() {}
+
+  _deleteAllElements() {
+    dashboard!.removeAllElements();
+  }
+
+  _addElement(Offset position) {
+    final element = FlowElement(
+      position: position,
+      size: const Size(100, 50),
+      text: '${dashboard!.elements.length}',
+      handlerSize: 25,
+      kind: ElementKind.rectangle,
+      handlers: [
+        Handler.bottomCenter,
+        Handler.topCenter,
+        Handler.leftCenter,
+        Handler.rightCenter,
+      ],
     );
+    dashboard!.addElement(element);
+    // ..setElementResizable(element, true);
   }
 }

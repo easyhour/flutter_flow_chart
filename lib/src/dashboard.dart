@@ -2,6 +2,7 @@
 
 import 'dart:convert';
 import 'dart:io';
+import 'dart:ui' as ui;
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
@@ -26,10 +27,12 @@ class Dashboard extends ChangeNotifier {
     this.blockDefaultZoomGestures = false,
     this.minimumZoomFactor = 0.25,
     this.defaultArrowStyle = ArrowStyle.curve,
+    ui.Image? backgroundImage,
   })  : elements = [],
         _dashboardPosition = Offset.zero,
         dashboardSize = Size.zero,
-        gridBackgroundParams = GridBackgroundParams() {
+        gridBackgroundParams =
+            GridBackgroundParams(backgroundImage: backgroundImage) {
     // This is a workaround to set the handlerFeedbackOffset
     // to improve the user experience on devices with touch screens
     // This will prevent the handler being covered by user's finger
@@ -139,7 +142,7 @@ class Dashboard extends ChangeNotifier {
     bool resizable, {
     bool notify = true,
   }) {
-    element.isResizing = resizable;
+    // element.isResizing = resizable;
     if (notify) notifyListeners();
   }
 

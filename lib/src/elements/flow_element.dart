@@ -83,7 +83,7 @@ class FlowElement extends ChangeNotifier {
     List<ConnectionParams>? next,
   })  : next = next ?? [],
         id = const Uuid().v4(),
-        isResizing = false,
+        // isResizing = false,
         // fixing offset issue under extreme scaling
         position = position -
             Offset(
@@ -180,7 +180,7 @@ class FlowElement extends ChangeNotifier {
   List<ConnectionParams> next;
 
   /// Element text
-  bool isResizing;
+  final bool isResizing = true;
 
   @override
   String toString() {
@@ -200,7 +200,7 @@ class FlowElement extends ChangeNotifier {
   /// When setting to true, a handler will disply at the element bottom right
   /// to let the user to resize it. When finish it will disappear.
   void setIsResizing(bool resizing) {
-    isResizing = resizing;
+    // isResizing = resizing;
     notifyListeners();
   }
 

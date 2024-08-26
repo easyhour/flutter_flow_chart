@@ -1,1 +1,6 @@
 include: package:very_good_analysis/analysis_options.yaml
+analyzer:
+  errors:
+    avoid_redundant_argument_values: ignore
+    require_trailing_commas: ignore
+    sort_constructors_first: ignore

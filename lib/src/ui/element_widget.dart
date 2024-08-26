@@ -6,7 +6,6 @@ import 'package:flutter_flow_chart/src/objects/oval_widget.dart';
 import 'package:flutter_flow_chart/src/objects/parallelogram_widget.dart';
 import 'package:flutter_flow_chart/src/objects/rectangle_widget.dart';
 import 'package:flutter_flow_chart/src/objects/storage_widget.dart';
-import 'package:flutter_flow_chart/src/ui/element_handlers.dart';
 import 'package:flutter_flow_chart/src/ui/resize_widget.dart';
 
 /// Widget that use [element] properties to display it on the dashboard scene
@@ -125,7 +124,7 @@ class _ElementWidgetState extends State<ElementWidget> {
     if (widget.element.isResizing) {
       return Transform.translate(
         offset: widget.element.position,
-        child: ResizeWidget(
+        child: element = ResizeWidget(
           element: widget.element,
           dashboard: widget.dashboard,
           child: element,
@@ -133,10 +132,10 @@ class _ElementWidgetState extends State<ElementWidget> {
       );
     }
 
-    element = Padding(
-      padding: EdgeInsets.all(widget.element.handlerSize / 2),
-      child: element,
-    );
+    // element = Padding(
+    //   padding: EdgeInsets.all(widget.element.handlerSize / 2),
+    //   child: element,
+    // );
 
     var tapLocation = Offset.zero;
     var secondaryTapDownPos = Offset.zero;
@@ -172,16 +171,17 @@ class _ElementWidgetState extends State<ElementWidget> {
               color: Colors.transparent,
               child: element,
             ),
-            child: ElementHandlers(
-              dashboard: widget.dashboard,
-              element: widget.element,
-              handlerSize: widget.element.handlerSize,
-              onHandlerPressed: widget.onHandlerPressed,
-              onHandlerSecondaryTapped: widget.onHandlerSecondaryTapped,
-              onHandlerLongPressed: widget.onHandlerLongPressed,
-              onHandlerSecondaryLongTapped: widget.onHandlerSecondaryLongTapped,
-              child: element,
-            ),
+            // child: ElementHandlers(
+            //   dashboard: widget.dashboard,
+            //   element: widget.element,
+            //   handlerSize: widget.element.handlerSize,
+            //   onHandlerPressed: widget.onHandlerPressed,
+            //   onHandlerSecondaryTapped: widget.onHandlerSecondaryTapped,
+            //   onHandlerLongPressed: widget.onHandlerLongPressed,
+            //   onHandlerSecondaryLongTapped: widget.onHandlerSecondaryLongTapped,
+            //   child: element,
+            // ),
+            child: element,
             onDragUpdate: (details) {
               widget.element.changePosition(
                 details.globalPosition - widget.dashboard.position - delta,

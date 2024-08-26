@@ -1,3 +1,5 @@
+// ignore_for_file: public_member_api_docs
+
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:flutter_flow_chart/flutter_flow_chart.dart';
@@ -11,8 +13,8 @@ class TextMenu extends StatelessWidget {
   final TextEditingController textController;
 
   TextMenu({
-    super.key,
     required this.element,
+    super.key,
   })  : sliderSize = ValueNotifier(element.textSize),
         isBold = ValueNotifier(element.textIsBold),
         textController = TextEditingController(text: element.text);
@@ -24,7 +26,7 @@ class TextMenu extends StatelessWidget {
       child: StarMenu(
         params: StarMenuParameters.panel(context, columns: 1).copyWith(
           openDurationMs: 60,
-          onHoverScale: 1.0,
+          onHoverScale: 1,
           centerOffset: const Offset(100, 100),
         ),
         items: _buildEntries(context),
@@ -43,7 +45,7 @@ class TextMenu extends StatelessWidget {
           textAlignVertical: TextAlignVertical.center,
           minLines: null,
           maxLines: null,
-          onChanged: (value) => element.setText(value),
+          onChanged: element.setText,
         ),
       ),
       Row(
@@ -86,10 +88,10 @@ class TextMenu extends StatelessWidget {
                     const Text('bold '),
                     Checkbox(
                       value: value,
-                      onChanged: ((value) {
+                      onChanged: (value) {
                         isBold.value = value!;
                         element.setTextIsBold(value);
-                      }),
+                      },
                     ),
                   ],
                 );
@@ -131,9 +133,9 @@ class IconMenu extends StatelessWidget {
   final String text;
 
   const IconMenu({
-    super.key,
     required this.icon,
     required this.text,
+    super.key,
   });
 
   @override
