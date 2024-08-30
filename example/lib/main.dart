@@ -112,7 +112,8 @@ class _EasyDeskEditorState extends State<EasyDeskEditor> {
                 if (element.kind == ElementKind.image) {
                   _addDesk(position.translate(0, -55));
                 } else {
-                  _displayElementMenu(context, position, element);
+                  // _displayElementMenu(context, position, element);
+                  dashboard.setElementEditingText(element, true);
                 }
               },
             ),
@@ -222,7 +223,8 @@ class _EasyDeskEditorState extends State<EasyDeskEditor> {
       FlowElement(
         position: position ?? dashboardCenter,
         size: (lastElementSize ?? const Size(55, 55)) / dashboard.zoomFactor,
-        text: '${widget.prefix}${dashboard.elements.length}',
+        text:
+            '${widget.prefix}${dashboard.elements.where((e) => e.kind == ElementKind.rectangle).length + 1}',
         handlerSize: 25,
         kind: ElementKind.rectangle,
       )
