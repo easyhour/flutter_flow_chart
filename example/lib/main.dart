@@ -105,7 +105,6 @@ class _EasyDeskEditorState extends State<EasyDeskEditor> {
               dashboard: dashboard,
               onDashboardTapped: (context, position) {
                 debugPrint('Dashboard tapped $position');
-                // _displayDashboardMenu(context, position);
                 _addDesk(position);
               },
               onElementPressed: (context, position, element) {
@@ -217,17 +216,20 @@ class _EasyDeskEditorState extends State<EasyDeskEditor> {
     final lastElement = dashboard.elements.lastOrNull;
     final lastElementSize =
         lastElement?.kind == ElementKind.rectangle ? lastElement!.size : null;
+    debugPrint(
+        "lastElementSize=$lastElementSize dashboard.zoomFactor=${dashboard.zoomFactor}");
     dashboard.addElement(
       FlowElement(
         position: position ?? dashboardCenter,
-        size: lastElementSize ?? const Size(55, 55),
-        text: '${dashboard.elements.length}',
+        size: (lastElementSize ?? const Size(55, 55)) / dashboard.zoomFactor,
+        text: '${widget.prefix}${dashboard.elements.length}',
         handlerSize: 25,
         kind: ElementKind.rectangle,
       )
         ..isDraggable = true
         ..isResizable = true
-        ..isConnectable = false,
+        ..isConnectable = false
+        ..isDeletable = true,
     );
     setState(() {});
   }
