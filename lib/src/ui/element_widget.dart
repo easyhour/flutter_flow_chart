@@ -7,9 +7,8 @@ import 'package:flutter_flow_chart/src/objects/oval_widget.dart';
 import 'package:flutter_flow_chart/src/objects/parallelogram_widget.dart';
 import 'package:flutter_flow_chart/src/objects/rectangle_widget.dart';
 import 'package:flutter_flow_chart/src/objects/storage_widget.dart';
-
-import 'element_handlers.dart';
-import 'handler_widget.dart';
+import 'package:flutter_flow_chart/src/ui/element_handlers.dart';
+import 'package:flutter_flow_chart/src/ui/handler_widget.dart';
 
 /// Widget that use [element] properties to display it on the dashboard scene
 class ElementWidget extends StatefulWidget {
@@ -108,8 +107,9 @@ class _ElementWidgetState extends State<ElementWidget> {
 
   @override
   Widget build(BuildContext context) {
-    Widget element;
+    debugPrint('Rebuilding element ${widget.element.id}');
 
+    Widget element;
     switch (widget.element.kind) {
       case ElementKind.diamond:
         element = DiamondWidget(element: widget.element);

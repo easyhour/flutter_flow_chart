@@ -14,6 +14,8 @@ class ElementTextWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    debugPrint('Rendering ElementTextWidget ${element.id}: ${element.text}');
+
     return Align(
       child: Text(
         element.text,
