@@ -1,5 +1,6 @@
 // ignore_for_file: public_member_api_docs
 
+import 'package:example/element_settings_menu_web.dart';
 import 'package:example/text_menu.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -179,9 +180,37 @@ class _EasyDeskEditorState extends State<EasyDeskEditor> {
             child: const Text('Delete'),
           ),
           TextMenu(element: element),
-          // ElementSettingsMenu(
-          //   element: element,
-          // ),
+          InkWell(
+            onTap: () {
+              dashboard.removeElementConnections(element);
+            },
+            child: const Text('Remove all connections'),
+          ),
+          InkWell(
+            onTap: () {
+              dashboard.setElementDraggable(element, !element.isDraggable);
+            },
+            child:
+                Text('Toggle Draggable (${element.isDraggable ? '✔' : '✘'})'),
+          ),
+          InkWell(
+            onTap: () {
+              dashboard.setElementConnectable(element, !element.isConnectable);
+            },
+            child: Text(
+              'Toggle Connectable (${element.isConnectable ? '✔' : '✘'})',
+            ),
+          ),
+          InkWell(
+            onTap: () {
+              dashboard.setElementResizable(element, !element.isResizable);
+            },
+            child:
+                Text('Toggle Resizable (${element.isResizable ? '✔' : '✘'})'),
+          ),
+          ElementSettingsMenu(
+            element: element,
+          ),
         ],
         parentContext: context,
       ),
