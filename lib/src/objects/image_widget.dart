@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:ui';
 
@@ -5,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_flow_chart/src/elements/flow_element.dart';
 
 /// A kind of element
-class ImageWidget extends StatefulWidget {
+class ImageWidget extends StatelessWidget {
   /// Requires element.data to be an ImageProvider.
   ImageWidget({
     required this.element,
@@ -17,10 +18,7 @@ class ImageWidget extends StatefulWidget {
         ),
         imageProvider = element.serializedData?.isNotEmpty ?? false
             ? Image.memory(base64Decode(element.serializedData!)).image
-            : element.data as ImageProvider {
-    debugPrint('ImageWidget ${element.id} loaded with '
-        'serializedData=${element.serializedData?.length ?? 0} bytes');
-  }
+            : element.data as ImageProvider;
 
   ///
   final FlowElement element;
@@ -29,72 +27,72 @@ class ImageWidget extends StatefulWidget {
   final ImageProvider imageProvider;
 
   @override
-  State<ImageWidget> createState() => _ImageWidgetState();
-}
-
-class _ImageWidgetState extends State<ImageWidget> {
-  ImageInfo? imageInfo;
-  String? error;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadImageData();
-  }
-
-  void _loadImageData() {
-    // Load image
-    widget.imageProvider.resolve(ImageConfiguration.empty).addListener(
-          ImageStreamListener(
-            (ImageInfo info, _) async {
-              // Apply size
-              if (widget.element.size == Size.zero) {
-                widget.element.changeSize(
-                  Size(
-                    info.image.width.toDouble(),
-                    info.image.height.toDouble(),
-                  ),
-                );
-              }
-              // Serialize image to save/load dashboard
-              final imageData =
-                  await info.image.toByteData(format: ImageByteFormat.png);
-              widget.element.serializedData =
-                  base64Encode(imageData!.buffer.asUint8List());
-              // Render image
-              if (mounted) setState(() => imageInfo = info);
-            },
-            onError: (exception, stackTrace) {
-              debugPrintStack(stackTrace: stackTrace);
-              // Ensure we have a size size
-              if (widget.element.size == Size.zero) {
-                widget.element.changeSize(const Size(200, 150));
-              }
-              // Show error
-              if (mounted) setState(() => error = exception.toString());
-            },
-          ),
-        );
-  }
-
-  @override
   Widget build(BuildContext context) {
-    if (error != null) {
-      return Center(child: Text(error!));
-    } else if (imageInfo == null) {
-      return const Center(child: CircularProgressIndicator());
+    return FutureBuilder<(ImageInfo?, String?)>(
+        future: _loadImageData(context),
+        builder: (_, snapshot) {
+          if (snapshot.connectionState != ConnectionState.done) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.data!.$2 != null) {
+            return Center(child: Text(snapshot.error.toString()));
+          } else {
+            debugPrint('Rendering ImageWidget ${element.id} '
+                'from provider ${imageProvider.runtimeType}');
+            return ColoredBox(
+              color: Colors.black12,
+              child: Image(
+                image: imageProvider,
+                width: element.size.width,
+                height: element.size.height,
+                fit: BoxFit.contain,
+              ),
+            );
+          }
+        });
+  }
+
+  Future<(ImageInfo?, String?)> _loadImageData(BuildContext context) async {
+    debugPrint('Loading image data for ImageWidget ${element.id}');
+
+    final imageStream =
+        imageProvider.resolve(createLocalImageConfiguration(context));
+    final completer = Completer<(ImageInfo?, String?)>();
+    final listener = ImageStreamListener(
+      (imageInfo, _) async {
+        if (!completer.isCompleted) {
+          completer.complete((imageInfo, null));
+        }
+      },
+      onError: (exception, stackTrace) {
+        debugPrintStack(stackTrace: stackTrace);
+        if (!completer.isCompleted) {
+          completer.complete((null, exception.toString()));
+        }
+      },
+    );
+    imageStream.addListener(listener);
+    final imageInfoOrError = await completer.future;
+    imageStream.removeListener(listener);
+
+    // Apply size
+    if (element.size == Size.zero) {
+      element.changeSize(
+        imageInfoOrError.$1 != null
+            ? Size(
+                imageInfoOrError.$1!.image.width.toDouble(),
+                imageInfoOrError.$1!.image.height.toDouble(),
+              )
+            : const Size(200, 150),
+      );
     }
 
-    debugPrint('Rendering ImageWidget ${widget.element.id} '
-        'from provider ${widget.imageProvider.runtimeType}');
-    return ColoredBox(
-      color: Colors.black12,
-      child: Image(
-        image: widget.imageProvider,
-        width: widget.element.size.width,
-        height: widget.element.size.height,
-        fit: BoxFit.contain,
-      ),
-    );
+    if (imageInfoOrError.$1 != null) {
+      // Serialize image to save/load dashboard
+      final imageData = await imageInfoOrError.$1!.image
+          .toByteData(format: ImageByteFormat.png);
+      element.serializedData = base64Encode(imageData!.buffer.asUint8List());
+    }
+
+    return imageInfoOrError;
   }
 }
