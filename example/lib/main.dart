@@ -1,11 +1,11 @@
 // ignore_for_file: public_member_api_docs
 
-import 'package:example/element_settings_menu_web.dart';
-import 'package:example/text_menu.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_flow_chart/flutter_flow_chart.dart';
-import 'package:star_menu/star_menu.dart';
+
+import '../platforms/hooks_mobile.dart'
+    if (dart.library.js) '../platforms/hooks_web.dart';
 
 void main() {
   runApp(const MyApp());
@@ -106,7 +106,11 @@ class _EasyDeskEditorState extends State<EasyDeskEditor> {
               dashboard: dashboard,
               onDashboardTapped: (context, position) {
                 debugPrint('Dashboard tapped $position');
-                _addDesk(position);
+                if (hasMap) {
+                  _addDesk(position);
+                } else {
+                  _addMap();
+                }
               },
               onElementPressed: (context, position, element) {
                 debugPrint('Element with "${element.text}" text pressed');
@@ -138,87 +142,12 @@ class _EasyDeskEditorState extends State<EasyDeskEditor> {
     );
   }
 
-  void _displayElementMenu(
-    BuildContext context,
-    Offset position,
-    FlowElement element,
-  ) {
-    StarMenuOverlay.displayStarMenu(
-      context,
-      StarMenu(
-        params: StarMenuParameters(
-          shape: MenuShape.linear,
-          openDurationMs: 60,
-          linearShapeParams: const LinearShapeParams(
-            angle: 270,
-            alignment: LinearAlignment.left,
-            space: 10,
-          ),
-          onHoverScale: 1.1,
-          centerOffset: position - const Offset(50, 0),
-          boundaryBackground: BoundaryBackground(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              color: Theme.of(context).cardColor,
-              boxShadow: kElevationToShadow[6],
-            ),
-          ),
-        ),
-        onItemTapped: (index, controller) {
-          if (!(index == 5 || index == 2)) {
-            controller.closeMenu!();
-          }
-        },
-        items: [
-          Text(
-            element.text,
-            style: const TextStyle(fontWeight: FontWeight.w900),
-          ),
-          InkWell(
-            onTap: () => _removeDesk(element),
-            child: const Text('Delete'),
-          ),
-          TextMenu(element: element),
-          InkWell(
-            onTap: () {
-              dashboard.removeElementConnections(element);
-            },
-            child: const Text('Remove all connections'),
-          ),
-          InkWell(
-            onTap: () {
-              dashboard.setElementDraggable(element, !element.isDraggable);
-            },
-            child:
-                Text('Toggle Draggable (${element.isDraggable ? '✔' : '✘'})'),
-          ),
-          InkWell(
-            onTap: () {
-              dashboard.setElementConnectable(element, !element.isConnectable);
-            },
-            child: Text(
-              'Toggle Connectable (${element.isConnectable ? '✔' : '✘'})',
-            ),
-          ),
-          InkWell(
-            onTap: () {
-              dashboard.setElementResizable(element, !element.isResizable);
-            },
-            child:
-                Text('Toggle Resizable (${element.isResizable ? '✔' : '✘'})'),
-          ),
-          ElementSettingsMenu(
-            element: element,
-          ),
-        ],
-        parentContext: context,
-      ),
-    );
-  }
-
   Offset get dashboardCenter => Offset(
       dashboard.dashboardSize.width / 2, dashboard.dashboardSize.height / 2);
+
+  bool get hasMap =>
+      dashboard.elements.firstOrNull?.kind == ElementKind.image ||
+      dashboard.gridBackgroundParams.backgroundImage != null;
 
   _addMap() async {
     final pickResult = await FilePicker.platform.pickFiles(
@@ -228,17 +157,21 @@ class _EasyDeskEditorState extends State<EasyDeskEditor> {
     if (dashboard.elements.firstOrNull?.kind == ElementKind.image) {
       dashboard.removeElement(dashboard.elements.first);
     }
-    dashboard.addElement(
-      FlowElement(
-        position: Offset.zero,
-        kind: ElementKind.image,
-        data: Image.memory(pickResult.files.single.bytes!).image,
-      )
-        ..isDraggable = true
-        ..isResizable = true
-        ..isConnectable = false,
-      position: 0,
-    );
+    // final image = await decodeImageFromList(pickResult.files.single.bytes!);
+    // dashboard.addElement(
+    //   FlowElement(
+    //     position: Offset.zero,
+    //     kind: ElementKind.image,
+    //     data: Image.memory(pickResult.files.single.bytes!).image,
+    //   )
+    //     ..isDraggable = true
+    //     ..isResizable = true
+    //     ..isConnectable = false,
+    //   position: 0,
+    // );
+    dashboard.setGridBackgroundParams(GridBackgroundParams(
+      backgroundImage: pickResult.files.single.bytes!,
+    ));
     setState(() {});
   }
 
@@ -279,7 +212,7 @@ class _EasyDeskEditorState extends State<EasyDeskEditor> {
   }
 
   _saveMap([Offset? position]) {
-    // TODO
+    saveDashboard(dashboard);
   }
 
   Widget _buildHelpSidebar() {
@@ -295,7 +228,7 @@ class _EasyDeskEditorState extends State<EasyDeskEditor> {
               help:
                   'Aggiungi la piantina catastale da usare come base in formato PNG o PDF.',
               onTap: _addMap,
-              done: dashboard.elements.firstOrNull?.kind == ElementKind.image,
+              done: hasMap,
             ),
             _buildHelpEntry(
               title: '2. Aggiungi la prima scrivania',
