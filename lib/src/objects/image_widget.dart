@@ -36,9 +36,7 @@ class _ImageWidgetState extends State<ImageWidget> {
   @override
   void initState() {
     super.initState();
-    if (widget.element.serializedData?.isEmpty ?? true) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _loadImage());
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) => _loadImage());
   }
 
   void _loadImage() {
@@ -76,6 +74,10 @@ class _ImageWidgetState extends State<ImageWidget> {
 
   @override
   Widget build(BuildContext context) {
+    debugPrint('Rendering ImageWidget ${widget.element.id} '
+        'from provider ${widget.imageProvider.runtimeType} '
+        'and cachedImage $_cachedImage');
+
     if (_error != null) {
       return Center(child: Text(_error!));
     } else if (_cachedImage == null) {
