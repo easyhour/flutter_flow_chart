@@ -20,9 +20,11 @@ class GridBackgroundParams extends ChangeNotifier {
       _onScaleUpdateListeners.add(onScaleUpdate);
     }
     if (backgroundImage != null) {
+      _backgroundImageNeedsPaint = true;
       ui.decodeImageFromList(backgroundImage!, (image) {
-        debugPrint("Image decoding completed: $image");
+        debugPrint('Image decoding completed: $image');
         _backgroundImage = image;
+        notifyListeners();
       });
     }
   }
@@ -64,6 +66,7 @@ class GridBackgroundParams extends ChangeNotifier {
   /// Grid background image.
   final Uint8List? backgroundImage;
   ui.Image? _backgroundImage;
+  bool _backgroundImageNeedsPaint = false;
 
   /// Grid lines color.
   final Color gridColor;
@@ -213,7 +216,8 @@ class _GridBackgroundPainter extends CustomPainter {
       canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
     }
 
-    debugPrint("Moving to: ${dx}x${dy}");
+    // debugPrint(
+    //     'Moving to: ${dx},${dy} (start=${startX},${startY}) with scale=${params.scale}');
     if (params._backgroundImage != null) {
       final image = params._backgroundImage!;
       final scale = params.scale;
@@ -222,12 +226,15 @@ class _GridBackgroundPainter extends CustomPainter {
       final dstRect =
           Rect.fromLTWH(dx, dy, image.width * scale, image.height * scale);
       canvas.drawImageRect(image, srcRect, dstRect, Paint());
+      params._backgroundImageNeedsPaint = false;
     }
   }
 
   @override
   bool shouldRepaint(_GridBackgroundPainter oldDelegate) {
     debugPrint('shouldRepaint ${oldDelegate.dx} $dx ${oldDelegate.dy} $dy');
-    return oldDelegate.dx != dx || oldDelegate.dy != dy;
+    return oldDelegate.dx != dx ||
+        oldDelegate.dy != dy ||
+        params._backgroundImageNeedsPaint;
   }
 }
