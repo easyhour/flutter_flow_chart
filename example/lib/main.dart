@@ -73,14 +73,14 @@ class _EasyDeskEditorState extends State<EasyDeskEditor> {
           ),
           const VerticalDivider(),
           _buildAppBarIcon(
-            onPressed: () =>
-                dashboard.setZoomFactor(1.5 * dashboard.zoomFactor),
+            onPressed: () => dashboard.setZoomFactor(1.5 * dashboard.zoomFactor,
+                focalPoint: Offset.zero),
             icon: Icons.zoom_in,
             tooltip: 'Zoom in',
           ),
           _buildAppBarIcon(
-            onPressed: () =>
-                dashboard.setZoomFactor(dashboard.zoomFactor / 1.5),
+            onPressed: () => dashboard.setZoomFactor(dashboard.zoomFactor / 1.5,
+                focalPoint: Offset.zero),
             icon: Icons.zoom_out,
             tooltip: 'Zoom out',
           ),
@@ -145,9 +145,7 @@ class _EasyDeskEditorState extends State<EasyDeskEditor> {
   Offset get dashboardCenter => Offset(
       dashboard.dashboardSize.width / 2, dashboard.dashboardSize.height / 2);
 
-  bool get hasMap =>
-      dashboard.elements.firstOrNull?.kind == ElementKind.image ||
-      dashboard.gridBackgroundParams.backgroundImage != null;
+  bool get hasMap => dashboard.elements.firstOrNull?.kind == ElementKind.image;
 
   _addMap() async {
     final pickResult = await FilePicker.platform.pickFiles(
@@ -157,21 +155,22 @@ class _EasyDeskEditorState extends State<EasyDeskEditor> {
     if (dashboard.elements.firstOrNull?.kind == ElementKind.image) {
       dashboard.removeElement(dashboard.elements.first);
     }
-    // final image = await decodeImageFromList(pickResult.files.single.bytes!);
-    // dashboard.addElement(
-    //   FlowElement(
-    //     position: Offset.zero,
-    //     kind: ElementKind.image,
-    //     data: Image.memory(pickResult.files.single.bytes!).image,
-    //   )
-    //     ..isDraggable = true
-    //     ..isResizable = true
-    //     ..isConnectable = false,
-    //   position: 0,
-    // );
-    dashboard.setGridBackgroundParams(GridBackgroundParams(
-      backgroundImage: pickResult.files.single.bytes!,
-    ));
+
+    dashboard.addElement(
+      FlowElement(
+        position: Offset.zero,
+        kind: ElementKind.image,
+        data: Image.memory(pickResult.files.single.bytes!).image,
+      )
+        ..isDraggable = false
+        ..isResizable = false
+        ..isConnectable = false,
+      position: 0,
+    );
+    // dashboard.setGridBackgroundParams(GridBackgroundParams(
+    //   backgroundImage: pickResult.files.single.bytes!,
+    // ));
+
     setState(() {});
   }
 

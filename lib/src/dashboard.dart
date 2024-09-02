@@ -484,12 +484,14 @@ class Dashboard extends ChangeNotifier {
 
     for (final element in elements) {
       // applying new zoom
+      debugPrint('Element ${element.text}: moving from ${element.position}');
       element
         ..position = (element.position - focalPoint) /
                 gridBackgroundParams.scale *
                 factor +
             focalPoint
         ..setScale(gridBackgroundParams.scale, factor);
+      debugPrint('Element ${element.text}: moved to ${element.position}');
       for (final conn in element.next) {
         for (final pivot in conn.pivots) {
           pivot.setScale(gridBackgroundParams.scale, focalPoint, factor);

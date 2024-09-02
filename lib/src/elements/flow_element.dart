@@ -211,7 +211,7 @@ class FlowElement extends ChangeNotifier {
 
   @override
   String toString() {
-    return 'kind: $kind  text: $text';
+    return 'FlowElement{kind: $kind, text: $text, size: $size, position: $position}';
   }
 
   /// Get the handler center of this handler for the given alignment.
@@ -297,6 +297,7 @@ class FlowElement extends ChangeNotifier {
 
   /// Change element position in the dashboard
   void changePosition(Offset newPosition) {
+    debugPrint('changePosition: to $newPosition');
     position = newPosition;
     notifyListeners();
   }
