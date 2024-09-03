@@ -41,7 +41,8 @@ class _ImageWidgetState extends State<ImageWidget> {
 
   void _loadImage() {
     // Ensure we have a size size
-    if (widget.element.size == Size.zero) {
+    final adaptSizeToImage = widget.element.size == Size.zero;
+    if (adaptSizeToImage) {
       widget.element.changeSize(const Size(200, 150));
     }
     // Load image
@@ -49,10 +50,12 @@ class _ImageWidgetState extends State<ImageWidget> {
           ImageStreamListener(
             (ImageInfo info, _) async {
               // Adjust size
-              widget.element.changeSize(Size(
-                info.image.width.toDouble(),
-                info.image.height.toDouble(),
-              ));
+              if (adaptSizeToImage) {
+                widget.element.changeSize(Size(
+                  info.image.width.toDouble(),
+                  info.image.height.toDouble(),
+                ));
+              }
               // Serialize image to save/load dashboard
               final imageData =
                   await info.image.toByteData(format: ui.ImageByteFormat.png);
@@ -74,7 +77,7 @@ class _ImageWidgetState extends State<ImageWidget> {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint('Rendering ImageWidget ${widget.element.id} '
+    debugPrint('Rendering ImageWidget of size ${widget.element.size} '
         'from provider ${widget.imageProvider.runtimeType} '
         'and cachedImage $_cachedImage');
 
